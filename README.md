@@ -1,24 +1,5 @@
-# hello-world
+# canvas-demo
 
-## Project setup
-```
-yarn install
-```
+## 简介
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
-
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+记录自己canvas 练习的demo
