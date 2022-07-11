@@ -5,16 +5,25 @@ Vue.use(VueRouter);
 
 const routes = [
   {
-    path: "/",
-    name: "",
-    redirect: "/aa",
+    path: '/',
+    redirect: '/box-selection'
   },
   {
-    path: "/aa",
-    name: "",
-    component: () => import("./components/drawings-view.vue"),
+    path: '/area',
+    name: '标记区域',
+    component: () => import('./components/drawings-view.vue')
   },
-];
+  {
+    path: '/box-selection',
+    name: '框选',
+    component: () => import('./components/box-selection.vue')
+  },
+  {
+    path: '/canvas-board',
+    name: '框选',
+    component: () => import('./components/canvas-board/index.vue')
+  }
+]
 
 const createRouter = () =>
   new VueRouter({
