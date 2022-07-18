@@ -55,25 +55,15 @@ export default {
       movePoint: { x: null, y: null, width: null, height: null },
 
       // 选框
-
-      rectList1: [],
-
-      tableList: [],
-      tableVisible: false,
-      tableCol: 2,
+      rectList: [],
       color1: '#FF7782',
-      color2: '#1E82FD',
-      color3: '#4b1efd',
       opacity: 0.3,
       lineWidth: 2
     }
   },
   watch: {
-    rectList1: function (newVal, oldVal) {
-      console.log('rectList1: ', newVal)
-    },
-    tableList: function (newVal, oldVal) {
-      console.log('tableList: ', newVal)
+    rectList: function (newVal, oldVal) {
+      console.log('rectList: ', newVal)
     }
   },
   methods: {
@@ -94,7 +84,6 @@ export default {
       this.imgWidth = 1913
       this.imgHeight = 1122
       this.imgBase64Code = 'https://p5.ssl.qhimg.com/t01a2bd87890397464a.png'
-
       this.baseTarget = this.$refs.baseCanvas
       this.wrapperTarget = this.$refs.canvasWrapper
       this.baseInstance = this.baseTarget.getContext('2d')
@@ -197,7 +186,7 @@ export default {
         this.movePoint.height
       )
 
-      this.rectList1.map(item => {
+      this.rectList.map(item => {
         this.baseInstance.beginPath()
         this.baseInstance.fillStyle = this.color1
         this.baseInstance.globalAlpha = this.opacity
@@ -223,7 +212,7 @@ export default {
 
       this.baseTarget.onmousedown = e => {
         mouseInit = { x: e.offsetX, y: e.offsetY }
-        this.selectId = this.rectList1.length
+        this.selectId = this.rectList.length
         moveIn = true
         moved = this.getSelectRect(mouseInit)
       }
@@ -261,7 +250,7 @@ export default {
      * @param {*} mouse
      */
     getSelectRect(mouse) {
-      let selectList = this.rectList1.filter(item => {
+      let selectList = this.rectList.filter(item => {
         const xFlag =
           mouse.x > item.x - this.circlsRadius &&
           mouse.x < item.x + item.width + this.circlsRadius
@@ -292,7 +281,7 @@ export default {
     drawRectWithColor(instance, x, y, width, height, id) {
       instance.clearRect(0, 0, this.movePoint.width, this.movePoint.height)
       this.initDrawRect()
-      this.rectList1[id] = {
+      this.rectList[id] = {
         x,
         y,
         width,
@@ -309,7 +298,7 @@ export default {
     drawRectBorder(instance, id) {
       instance.clearRect(0, 0, this.movePoint.width, this.movePoint.height)
       this.initDrawRect()
-      this.rectList1.map(item => {
+      this.rectList.map(item => {
         if (item.id === id) {
           const [startAngle, endAngle, pointList] = [
             0,
@@ -368,7 +357,7 @@ export default {
      */
     dragRect(moved, x, y, moveX, moveY, id) {
       if (id === null) return
-      this.rectList1.map(item => {
+      this.rectList.map(item => {
         if (item.id === id) {
           const getPoint = (a, b, step) => [
             a - step,
@@ -465,7 +454,7 @@ export default {
         case 'move':
           this.baseTarget.style.cursor = 'move'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.x += moveX
                 item.y += moveY
@@ -475,7 +464,7 @@ export default {
         case 'lLine':
           this.baseTarget.style.cursor = 'e-resize'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.x += moveX
                 item.width -= moveX
@@ -485,7 +474,7 @@ export default {
         case 'rLine':
           this.baseTarget.style.cursor = 'e-resize'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.width += moveX
               }
@@ -494,7 +483,7 @@ export default {
         case 'tLine':
           this.baseTarget.style.cursor = 'n-resize'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.y += moveY
                 item.height -= moveY
@@ -504,7 +493,7 @@ export default {
         case 'bLine':
           this.baseTarget.style.cursor = 'n-resize'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.height += moveY
               }
@@ -513,7 +502,7 @@ export default {
         case 'ltCircle':
           this.baseTarget.style.cursor = 'nw-resize'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.x += moveX
                 item.y += moveY
@@ -525,7 +514,7 @@ export default {
         case 'lbCircle':
           this.baseTarget.style.cursor = 'ne-resize'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.x += moveX
                 item.width -= moveX
@@ -536,7 +525,7 @@ export default {
         case 'rtCircle':
           this.baseTarget.style.cursor = 'ne-resize'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.y += moveY
                 item.height -= moveY
@@ -547,7 +536,7 @@ export default {
         case 'rbCircle':
           this.baseTarget.style.cursor = 'nw-resize'
           moved &&
-            this.rectList1.map(item => {
+            this.rectList.map(item => {
               if (item.id === id) {
                 item.width += moveX
                 item.height += moveY
@@ -555,8 +544,8 @@ export default {
             })
           break
         case 'revise':
-          this.rectList1 = this.rectList1.filter(item => item)
-          this.rectList1.map((item, index, arr) => {
+          this.rectList = this.rectList.filter(item => item)
+          this.rectList.map((item, index, arr) => {
             if (item.id === id) {
               if (
                 Math.abs(item.width) < this.minSelectArea ||
@@ -568,7 +557,7 @@ export default {
               }
             }
           })
-          this.rectList1.map((item, index, arr) => {
+          this.rectList.map((item, index, arr) => {
             if (item.id === id) {
               if (item.width < 0) {
                 item.x += item.width
@@ -583,7 +572,6 @@ export default {
           })
           break
       }
-
       this.drawRectBorder(this.baseInstance, id)
     }
   },
