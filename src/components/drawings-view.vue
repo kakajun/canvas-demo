@@ -8,7 +8,7 @@
           content="框选锚点"
           placement="top"
         >
-          <el-button @click="drawAnchor">框选锚点</el-button>
+          <el-button @click="drawRect">框选锚点</el-button>
         </el-tooltip>
       </span>
     </div>
@@ -22,10 +22,6 @@
         ></canvas>
       </div>
     </div>
-
-    <div style="margin-top: 20px">
-      <el-button @click="mark">标记</el-button>
-    </div>
   </div>
 </template>
 
@@ -33,14 +29,10 @@
 export default {
   data() {
     return {
-      wrapperTarget: null,
       baseTarget: null,
       baseInstance: null,
       selectId: null,
       currentCursor: null,
-      centerLineIndex: null,
-      centerLineShow: true,
-
       //base data
       drawWidth: 1000,
       drawHeight: 700,
@@ -68,15 +60,7 @@ export default {
   },
   methods: {
     /**
-     * @desc:
-     * @author: majun
-     */
-    mark() {
-      this.initDrawRect()
-      this.drawAnchor()
-    },
-    /**
-     * @desc:
+     * @desc: 初始化
      * @author: majun
      * @param {*} data
      */
@@ -85,28 +69,10 @@ export default {
       this.imgHeight = 1122
       this.imgBase64Code = 'https://p5.ssl.qhimg.com/t01a2bd87890397464a.png'
       this.baseTarget = this.$refs.baseCanvas
-      this.wrapperTarget = this.$refs.canvasWrapper
+
       this.baseInstance = this.baseTarget.getContext('2d')
       this.drawCanvas()
-      this.drawAnchor()
-    },
-
-    /**
-     * @desc:
-     * @author: majun
-     */
-    drawAnchor() {
-      this._drawRect()
-    },
-    /**
-     * @desc:
-     * @author: majun
-     */
-    setWrapper() {
-      this.wrapperTarget.style.left = `${this.movePoint.x}px`
-      this.wrapperTarget.style.top = `${this.movePoint.y}px`
-      this.wrapperTarget.style.width = `${this.movePoint.width}px`
-      this.wrapperTarget.style.height = `${this.movePoint.height}px`
+      this.drawRect()
     },
     /**
      * @desc:
@@ -134,27 +100,12 @@ export default {
       }
     },
     /**
-     * @desc:
-     * @author: majun
-     */
-    clearHandle() {
-      this.baseTarget.onmousedown = null
-      this.baseTarget.onmousemove = null
-      this.baseTarget.onmouseup = null
-
-      this.wrapperTarget.onmousedown = null
-      this.wrapperTarget.onmousemove = null
-      this.wrapperTarget.onmouseup = null
-    },
-
-    // 画布操做
-    /**
-     * @desc:
+     * @desc:画布构建
      * @author: majun
      * @param {*} moveX
      * @param {*} moveY
      */
-    drawCanvas(moveX = 0, moveY = 0) {
+    drawCanvas() {
       const [width, height] = [
         this.imgWidth * this.currentScaleVal,
         this.imgHeight * this.currentScaleVal
@@ -166,7 +117,6 @@ export default {
           (this.drawHeight - height) / 2
         ]
         ;[this.movePoint.width, this.movePoint.height] = [width, height]
-        this.setWrapper()
         this.setCanvas()
         this.baseTarget.style.backgroundImage = `url(${img.src})`
         this.baseTarget.style.backgroundSize = `${width}px ${height}px`
@@ -175,7 +125,7 @@ export default {
       img.src = this.imgBase64Code
     },
     /**
-     * @desc:
+     * @desc: 初始化矩形rectList
      * @author: majun
      */
     initDrawRect() {
@@ -185,7 +135,6 @@ export default {
         this.movePoint.width,
         this.movePoint.height
       )
-
       this.rectList.map(item => {
         this.baseInstance.beginPath()
         this.baseInstance.fillStyle = this.color1
@@ -194,22 +143,12 @@ export default {
         this.baseInstance.closePath()
       })
     },
-
-    // 选框操做
     /**
-     * @desc:
+     * @desc:选框操做
      * @author: majun
      */
-    _drawRect() {
-      let [moveIn, moved, mouseInit, mouse, move, selectList] = [
-        false,
-        false,
-        {},
-        {},
-        {},
-        []
-      ]
-
+    drawRect() {
+      let [moveIn, moved, mouseInit, mouse, move] = [false, false, {}, {}, {}]
       this.baseTarget.onmousedown = e => {
         mouseInit = { x: e.offsetX, y: e.offsetY }
         this.selectId = this.rectList.length
@@ -219,7 +158,6 @@ export default {
       this.baseTarget.onmousemove = e => {
         mouse = { x: e.offsetX, y: e.offsetY }
         move = { x: mouse.x - mouseInit.x, y: mouse.y - mouseInit.y }
-
         // 新建拖拉选框
         if (moveIn && !moved) {
           return this.drawRectWithColor(
@@ -231,12 +169,10 @@ export default {
             this.selectId
           )
         }
-
         // 移动编辑操做
         mouseInit = { x: mouse.x, y: mouse.y }
         this.dragRect(moved, mouse.x, mouse.y, move.x, move.y, this.selectId)
       }
-
       this.baseTarget.onmouseup = e => {
         moveIn = false
         moved = false
@@ -245,7 +181,7 @@ export default {
       }
     },
     /**
-     * @desc:
+     * @desc: 激活选择框
      * @author: majun
      * @param {*} mouse
      */
@@ -290,7 +226,7 @@ export default {
       }
     },
     /**
-     * @desc:
+     * @desc: 画外边框和四点
      * @author: majun
      * @param {*} instance
      * @param {*} id
@@ -336,7 +272,6 @@ export default {
             instance.fillStyle = '#fff'
             instance.fill()
             instance.strokeStyle = this.color1
-
             instance.lineWidth = this.lineWidth
             instance.globalAlpha = 1
             instance.stroke()
@@ -346,7 +281,7 @@ export default {
       })
     },
     /**
-     * @desc:
+     * @desc: 画矩形
      * @author: majun
      * @param {*} moved
      * @param {*} x
@@ -369,7 +304,6 @@ export default {
             yLine = getPoint(item.y, item.height, this.lineWidth),
             xCircle = getPoint(item.x, item.width, this.circlsRadius),
             yCircle = getPoint(item.y, item.height, this.circlsRadius)
-          // r:right; l:left; t:top; b:bottom;
           const move =
               x > xLine[1] && x < xLine[2] && y > yLine[1] && y < yLine[2],
             lLine = x > xLine[0] && x < xLine[1],
