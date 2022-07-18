@@ -181,7 +181,7 @@ export default {
       }
     },
     /**
-     * @desc: 激活选择框
+     * @desc: 判断是否激活选择框
      * @author: majun
      * @param {*} mouse
      */
