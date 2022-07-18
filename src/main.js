@@ -6,7 +6,7 @@ Vue.config.productionTip = false
 import Element from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 Vue.use(Element)
-Vue.component('icon', Icon)
+Vue.component('svg-icon', Icon)
 new Vue({
   render: h => h(App),
   router

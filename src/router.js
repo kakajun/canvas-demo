@@ -1,12 +1,12 @@
-import Vue from "vue";
-import VueRouter from "vue-router";
+import Vue from 'vue'
+import VueRouter from 'vue-router'
 
-Vue.use(VueRouter);
+Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    redirect: '/box-selection'
+    redirect: '/canvas-board'
   },
   {
     path: '/area',
@@ -28,8 +28,8 @@ const routes = [
 const createRouter = () =>
   new VueRouter({
     routes,
-    mode: "history",
-  });
+    mode: 'history'
+  })
 
-const router = createRouter();
-export default router;
+const router = createRouter()
+export default router

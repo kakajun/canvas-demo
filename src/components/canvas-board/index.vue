@@ -1,74 +1,87 @@
 <template>
-  <div class="container">
-    <canvas id="drawingBorad"></canvas>
-    <div class="tool-container">
-      <div class="icon-div icon" @click="isShowDrawPane = !isShowDrawPane">
-        <icon name="draw" scale="4"></icon>
-      </div>
-      <div class="icon-div icon" @click="filterObject('erase')">
-        <icon name="erase" scale="4"></icon>
-      </div>
-      <div class="icon-div icon" @click="filterObject('line')">
-        <icon name="line" scale="4"></icon>
-      </div>
-      <div class="icon-div icon" @click="filterObject('arrows')">
-        <icon name="arrows" scale="4"></icon>
-      </div>
-      <div class="icon-div icon" @click="filterObject('rect')">
-        <icon name="rect" scale="4"></icon>
-      </div>
-      <div class="icon-div icon" @click="filterObject('circle')">
-        <icon name="circle" scale="4"></icon>
-      </div>
-      <div class="icon-div icon" @click="filterObject('text')">
-        <icon name="text" scale="4"></icon>
-      </div>
-      <div class="icon-div icon" @click="clearCanvas()">
-        <icon name="clear" scale="4"></icon>
-      </div>
-      <div class="icon-div icon" @click="redo()">
-        <icon
-          :name="historyImageData.length > 0 ? 'redo' : 'grey-redo'"
-          scale="4"
-        ></icon>
-      </div>
-      <div class="icon-div icon" @click="cancelRedo()">
-        <icon
-          :name="
-            newHistoryImageData.length > 0 ? 'cancelRedo' : 'grey-cancelRedo'
-          "
-          scale="4"
-        ></icon>
-      </div>
-      <div class="icon-div icon" @click="downLoad()">
-        <icon name="download" scale="4"></icon>
-      </div>
-      <div class="drawPane" v-show="isShowDrawPane">
-        <div @click="isShowDrawPane = false">
-          <icon class="close-draw-pane icon" name="close" scale="3"></icon>
+  <el-row>
+    <el-col :span="12" class="left">
+      <div class="container">
+        <canvas id="drawingBorad"></canvas>
+        <div class="tool-container">
+          <div class="icon-div icon" @click="isShowDrawPane = !isShowDrawPane">
+            <svg-icon name="draw" scale="4"></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="filterObject('erase')">
+            <svg-icon name="erase" scale="4"></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="filterObject('line')">
+            <svg-icon name="line" scale="4"></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="filterObject('arrows')">
+            <svg-icon name="arrows" scale="4"></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="filterObject('rect')">
+            <svg-icon name="rect" scale="4"></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="filterObject('circle')">
+            <svg-icon name="circle" scale="4"></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="filterObject('text')">
+            <svg-icon name="text" scale="4"></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="clearCanvas()">
+            <svg-icon name="clear" scale="4"></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="redo()">
+            <svg-icon
+              :name="historyImageData.length > 0 ? 'redo' : 'grey-redo'"
+              scale="4"
+            ></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="cancelRedo()">
+            <svg-icon
+              :name="
+                newHistoryImageData.length > 0
+                  ? 'cancelRedo'
+                  : 'grey-cancelRedo'
+              "
+              scale="4"
+            ></svg-icon>
+          </div>
+          <div class="icon-div icon" @click="downLoad()">
+            <svg-icon name="download" scale="4"></svg-icon>
+          </div>
+          <div class="drawPane" v-show="isShowDrawPane">
+            <div @click="isShowDrawPane = false">
+              <svg-icon class="close-draw-pane icon" name="close" scale="3"></svg-icon>
+            </div>
+            <h5>画笔大小</h5>
+            <input type="range" id="lwRange" min="1" max="10" value="1" />
+            <h5>画笔颜色</h5>
+            <input type="color" id="lcolor" value="#ffa500" />
+          </div>
         </div>
-        <h5>画笔大小</h5>
-        <input type="range" id="lwRange" min="1" max="10" value="1" />
-        <h5>画笔颜色</h5>
-        <input type="color" id="lcolor" value="#ffa500" />
+        <textarea
+          id="textarea"
+          name="textBox"
+          cols="9"
+          rows="1"
+          class="text-style"
+          v-show="isShowText"
+        ></textarea>
       </div>
-    </div>
-    <textarea
-      id="textarea"
-      name="textBox"
-      cols="9"
-      rows="1"
-      class="text-style"
-      v-show="isShowText"
-    ></textarea>
-  </div>
+    </el-col>
+    <el-col :span="12">
+      <spritejs></spritejs>
+    </el-col>
+  </el-row>
 </template>
 
 <script>
+import spritejs from './spritejs'
 export default {
   name: 'Drawing',
   props: {
     msg: String
+  },
+  components: {
+    spritejs
   },
   data() {
     return {
@@ -426,6 +439,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.left {
+  background: rgb(223, 220, 220);
+}
 .container {
   width: 100%;
   height: 100%;
@@ -435,7 +451,7 @@ export default {
 .tool-container {
   position: fixed;
   bottom: 20px;
-  left: 50%;
+  left: 20%;
   transform: translateX(-50%);
   border: 2px solid orange;
   border-radius: 10px;
