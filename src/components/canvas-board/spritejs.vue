@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import { Scene, Group, Sprite } from 'spritejs'
+import { Scene, Group, Sprite, Polyline, Ring, Path } from 'spritejs'
 export default {
   name: '',
   components: {},
@@ -59,6 +59,7 @@ export default {
   },
   data() {
     return {
+      color1: 'blue',
       selectId: null,
       width: 854,
       height: 512,
@@ -69,8 +70,14 @@ export default {
         { height: 126, id: 0, width: 166, x: 95, y: 120 },
         { height: 26, id: 1, width: 66, x: 195, y: 320 }
       ],
+      minSelectArea: 5, // 选区最小距离
+      layer: null,
       activeCtx: null,
       currentCursor: null,
+      baseInstance: null, // 实例
+      tempGroup: null, // 临时实例
+      circlsRadius: 2,
+      lineWidth: 2, // 宽的宽度
       //保存画布图片历史的数据
       historyImageData: [],
       //保存已被撤销的历史画布图片数据
@@ -91,60 +98,34 @@ export default {
   methods: {
     initDraw() {
       const container = document.getElementById('canvas')
-      const scene = new Scene({
+      this.scene = new Scene({
         container,
         width: this.width,
         height: this.height
       })
-      const layer = scene.layer()
-      // let ox, oy, dragging, s
-      // let width = 0
-      // let height = 0
+      this.layer = this.scene.layer()
+      this.baseInstance = new Group()
+      this.tempGroup = this.baseInstance.cloneNode()
+      this.layer.append(this.baseInstance)
+      this.layer.append(this.tempGroup)
       // 初始化矩形rectList
-      this.drawRect(layer)
+      this.drawRect(this.baseInstance)
     },
     filterObject(type) {
       this.paintType = type
     },
+
     /**
-     * @desc:
+     * @desc: 画矩形
      * @author: majun
      * @param {*} s
-     * @param {*} width
-     * @param {*} height
-     * @param {*} ox
-     * @param {*} oy
+     * @param {*} obj
      */
-    setSpirit(s, width, height, ox, oy) {
-      //   painting: false,
-      // erase: false,
-      // line: false,
-      // arrows: false,
-      // rect: false,
-      // circle: false,
-      // text: false
-      switch (this.paintType) {
-        case 'rect':
-          this.setRect(s, width, height, ox, oy)
-          break
-        case 'line':
-          s.attr({
-            points: [ox, oy, width, height],
-            fillColor: '#37c',
-            lineWidth: 3,
-            close: true,
-            smooth: true
-          })
-        default:
-          break
-      }
-    },
-    setRect(s, width, height, ox, oy) {
+    setRect(s, obj) {
       s.attr({
-        x: ox,
-        y: oy,
-        width,
-        height,
+        ...obj,
+        program: obj,
+        opacity: 0.3,
         bgcolor: 'black',
         borderWidth: 2,
         borderRadius: 0
@@ -154,8 +135,8 @@ export default {
      * @desc:画选框操做
      * @author: majun
      */
-    drawRect(layer) {
-      this.initDrawRect(layer)
+    drawRect(group) {
+      this.initDrawRect(group)
       let [moveIn, moved, mouseInit, mouse, move, s] = [
         false,
         false,
@@ -164,50 +145,53 @@ export default {
         {},
         {}
       ]
-      layer.addEventListener('mousedown', e => {
+      this.layer.addEventListener('mousedown', e => {
         mouseInit = { x: e.x, y: e.y }
         this.selectId = this.rectList.length
         moveIn = true
         moved = this.getSelectRect(mouseInit)
+        console.log(moved, 'moved')
         s = new Sprite()
-        layer.append(s)
+        group.append(s)
       })
 
-      layer.addEventListener('mouseup', e => {
+      this.layer.addEventListener('mouseup', e => {
         moveIn = false
         moved = false
         this.currentCursor = null
-        // this.reShowRect(0, 0, moved, this.selectId, 'revise')
+        this.reShowRect(0, 0, moved, this.selectId, 'revise')
       })
-      layer.addEventListener('mousemove', e => {
+      this.layer.addEventListener('mousemove', e => {
         mouse = { x: e.x, y: e.y }
         move = { x: mouse.x - mouseInit.x, y: mouse.y - mouseInit.y }
         // 新建拖拉选框
         if (moveIn && !moved) {
-          this.rectList[this.selectId] = {
+          const item = {
             x: mouseInit.x,
             y: mouseInit.y,
             width: move.x,
             height: move.y,
             id: this.selectId
           }
-          this.setSpirit(s, move.x, move.y, mouseInit.x, mouseInit.y)
+          this.rectList[this.selectId] = item
+          // 画矩形
+          this.setRect(s, item)
+        } else {
+          // 移动编辑操做
+          mouseInit = { x: mouse.x, y: mouse.y }
+          this.dragRect(moved, mouse.x, mouse.y, move.x, move.y, this.selectId)
         }
-        // 移动编辑操做
-        // mouseInit = { x: mouse.x, y: mouse.y }
-        // this.dragRect(moved, mouse.x, mouse.y, move.x, move.y, this.selectId)
       })
     },
     /**
      * @desc: 初始化矩形rectList
      * @author: majun
      */
-    initDrawRect(layer) {
+    initDrawRect(group) {
       this.rectList.map(item => {
         const s = new Sprite()
-        const { width, height, x, y } = item
-        this.setRect(s, width, height, x, y)
-        layer.append(s)
+        this.setRect(s, item)
+        group.append(s)
       })
     },
     /**
@@ -229,8 +213,8 @@ export default {
         this.selectId =
           selectList[selectList.length - 1] &&
           selectList[selectList.length - 1].id
-        this.drawRectBorder(this.baseInstance, this.selectId)
-        return true
+        this.drawRectBorder(this.selectId)
+        return true // 要移动
       }
       return false
     },
@@ -315,10 +299,201 @@ export default {
           } else if (move) {
             this.throttle(this.reShowRect)(moveX, moveY, moved, id, 'move')
           } else {
-            this.baseTarget.style.cursor = 'default'
+            this.layer.canvas.style.cursor = 'default'
           }
         }
       })
+    },
+    /**
+     * @desc: 画外边框和四点
+     * @author: majun
+     * @param {*} instance
+     * @param {*} id
+     */
+    drawRectBorder(id) {
+      // 先清空所有
+      this.tempGroup.removeAllChildren()
+      this.rectList.map(item => {
+        if (item.id === id) {
+          const [startAngle, endAngle, pointList] = [
+            0,
+            360,
+            [
+              { x: item.x + item.width, y: item.y },
+              { x: item.x + item.width, y: item.y + item.height },
+              { x: item.x, y: item.y + item.height },
+              { x: item.x, y: item.y }
+            ]
+          ]
+          // 画边框
+          const linePoints = []
+          pointList.forEach(obj => {
+            linePoints.push(obj.x)
+            linePoints.push(obj.y)
+          })
+          const line = new Polyline({
+            points: [item.x, item.y, ...linePoints],
+            strokeColor: this.color1,
+            lineWidth: this.lineWidth
+          })
+          this.tempGroup.append(line)
+          const ring = new Ring({
+            outerRadius: 4,
+            startAngle,
+            endAngle,
+            strokeColor: this.color1,
+            fillColor: '#fff'
+          })
+          // 画四角圆
+          pointList.map(item => {
+            const ring2 = ring.cloneNode()
+            ring2.attr({
+              pos: [item.x, item.y]
+            })
+            this.tempGroup.append(ring2)
+          })
+        }
+      })
+    },
+    /**
+     * @desc: 鼠标抬起后操作集合
+     * @author: majun
+     * @param {*} moveX
+     * @param {*} moveY
+     * @param {*} moved
+     * @param {*} id
+     * @param {*} cursorStr
+     */
+    reShowRect(moveX, moveY, moved, id, cursorStr) {
+      this.layer.canvas.style.cursor = cursorStr
+      this.currentCursor = moved ? cursorStr : null
+      // 先清掉所有
+      this.tempGroup.removeAllChildren()
+      switch (cursorStr) {
+        case 'move':
+          console.log('move')
+          this.layer.canvas.style.cursor = 'move'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.x += moveX
+                item.y += moveY
+              }
+            })
+          break
+        case 'lLine':
+          console.log('lLine')
+          this.layer.canvas.style.cursor = 'e-resize'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.x += moveX
+                item.width -= moveX
+              }
+            })
+          break
+        case 'rLine':
+          this.layer.canvas.style.cursor = 'e-resize'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.width += moveX
+              }
+            })
+          break
+        case 'tLine':
+          this.layer.canvas.style.cursor = 'n-resize'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.y += moveY
+                item.height -= moveY
+              }
+            })
+          break
+        case 'bLine':
+          this.layer.canvas.style.cursor = 'n-resize'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.height += moveY
+              }
+            })
+          break
+        case 'ltCircle':
+          this.layer.canvas.style.cursor = 'nw-resize'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.x += moveX
+                item.y += moveY
+                item.width -= moveX
+                item.height -= moveY
+              }
+            })
+          break
+        case 'lbCircle':
+          this.layer.canvas.style.cursor = 'ne-resize'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.x += moveX
+                item.width -= moveX
+                item.height += moveY
+              }
+            })
+          break
+        case 'rtCircle':
+          this.layer.canvas.style.cursor = 'ne-resize'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.y += moveY
+                item.height -= moveY
+                item.width += moveX
+              }
+            })
+          break
+        case 'rbCircle':
+          this.layer.canvas.style.cursor = 'nw-resize'
+          moved &&
+            this.rectList.map(item => {
+              if (item.id === id) {
+                item.width += moveX
+                item.height += moveY
+              }
+            })
+          break
+        case 'revise':
+          this.rectList = this.rectList.filter(item => item)
+          this.rectList.map((item, index, arr) => {
+            if (item.id === id) {
+              if (
+                Math.abs(item.width) < this.minSelectArea ||
+                Math.abs(item.height) < this.minSelectArea
+              ) {
+                this.$message.error('框选区太小，请从新框选!')
+                arr.splice(index, 1)
+                this.layer.canvas.style.cursor = 'default'
+              }
+            }
+          })
+          this.rectList.map((item, index, arr) => {
+            if (item.id === id) {
+              if (item.width < 0) {
+                item.x += item.width
+                item.width = Math.abs(item.width)
+              }
+              if (item.height < 0) {
+                item.y += item.height
+                item.height = Math.abs(item.height)
+              }
+            }
+            item.id = index
+          })
+          break
+      }
+      this.drawRectBorder(id)
     },
     /**
      * @desc:

@@ -232,7 +232,6 @@ export default {
      * @param {*} id
      */
     drawRectBorder(instance, id) {
-      debugger
       instance.clearRect(0, 0, this.movePoint.width, this.movePoint.height)
       this.initDrawRect()
       this.rectList.map(item => {
