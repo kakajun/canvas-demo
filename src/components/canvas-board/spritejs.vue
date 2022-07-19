@@ -76,7 +76,7 @@ export default {
       currentCursor: null,
       baseInstance: null, // 实例
       tempGroup: null, // 临时实例
-      circlsRadius: 2,
+      circlsRadius: 4,
       lineWidth: 2, // 宽的宽度
       //保存画布图片历史的数据
       historyImageData: [],
@@ -338,7 +338,7 @@ export default {
           })
           this.tempGroup.append(line)
           const ring = new Ring({
-            outerRadius: 4,
+            outerRadius: this.circlsRadius,
             startAngle,
             endAngle,
             strokeColor: this.color1,
